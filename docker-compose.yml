@@ -1,0 +1,18 @@
+services:
+  gd-studio:
+    image: ghcr.io/p1e2r/gd-studio:latest
+    # build: .            # uncomment to build locally instead of pulling
+    container_name: gd-studio
+    restart: unless-stopped
+    ports:
+      - "3000:3000"       # point your Cloudflare tunnel hostname at http://<server-ip>:3000
+    environment:
+      ADMIN_PASSWORD: ""          # set this to use the Setup page through your public URL
+      API_PER_MINUTE: "90"        # per-visitor limit on GD-facing API calls
+      GD_MIN_INTERVAL_MS: "400"   # minimum gap between requests to boomlings.com
+      CACHE_SECONDS: "300"
+      ENABLE_SCORE_UPLOAD: "false" # experimental "Apply icons to account"
+      # GD_SERVER: "https://www.boomlings.com/database"   # change for a GDPS
+    volumes:
+      - ./data:/data                          # sessions, saved levels, sprite cache
+      - ./gd-resources:/gd-resources:ro       # copy of your Geometry Dash "Resources" folder

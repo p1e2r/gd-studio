@@ -1,0 +1,19 @@
+{
+  "name": "gd-studio",
+  "version": "0.1.0",
+  "description": "Self-hosted Geometry Dash browser, icon kit, save explorer, generators and level editor that renders with your own GD assets",
+  "type": "module",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test test/*.test.mjs"
+  },
+  "license": "MIT",
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "express": "^4.21.2",
+    "sharp": "^0.33.5"
+  }
+}
