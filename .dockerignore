@@ -3,3 +3,4 @@ data-local
 test
 .git
 *.md
+!docker-entrypoint.sh
