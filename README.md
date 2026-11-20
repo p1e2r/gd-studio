@@ -13,13 +13,12 @@ A self-hosted, Geometry Dash–styled website: level browser, profiles, leaderbo
 - **Icon Kit**: every form and color from your install, glow, PNG download, load any player's icons. You can apply icons to your save file, or (experimentally) to your account.
 - **Save Explorer**: decode `CCGameManager.dat` / `CCLocalLevels.dat` from Windows or macOS. Shows stats and the full data tree. Edit icons and download the re-encoded save, or open and export your local levels.
 - **Generators**: GD comments, GD textboxes (with color tags and portraits), and text in any GD bitmap font.
-- **Level editor** (no playtest), with a menu laid out like [GD Place](https://github.com/PlaceGD/gd-place-2024)'s editor:
-  - Build / Edit / Delete side rail, tab strip and a big Place / Delete button.
-  - Build by tapping to position a preview, then Place (or Enter / double-click). Swipe paints.
-  - Edit tabs: Transform (move pads, flip, rotate, scale, and on-canvas Rotate / Scale / Warp handles), Layers (below / above player, Z order), Colors (channel swatches, HSV), Groups and Special (trigger and start position settings).
-  - Copy/paste/duplicate, undo/redo and box select.
-  - Colors, HSV, groups, Z layer/order, and trigger + start position settings.
-  - Level settings, `.gmd` import/export, level strings, import from your save, and upload to the GD servers.
+- **Every screen follows Geometry Dash's own layout**, drawn with the sprites from your install: main menu, Creator menu, search with Quick Search and filters, framed level lists with page arrows, level info with comments, profile, leaderboards, gauntlet islands and the Garage.
+- **Level editor** (no playtest), laid out like GD's editor:
+  - Build / Edit / Delete buttons, object pages with category tabs, Swipe / Rotate / Free Move / Snap toggles.
+  - GD's Copy, Paste, Copy+Paste, Edit Special, Edit Group, Edit Object and Deselect buttons, plus undo / redo / trash, zoom, editor layers, settings and pause.
+  - Edit tab: GD's move, flip, rotate, scale and warp buttons, plus on-canvas rotate / scale / warp handles.
+  - Colors, HSV, groups, Z layer/order, trigger and start position settings, level settings, `.gmd` import/export, level strings, import from your save, and upload to the GD servers.
   - Online levels open read-only unless the creator allows copying (or the level is yours).
 
 ## Run it (Docker)
@@ -68,8 +67,8 @@ npm test   # uses synthetic placeholder assets + a mock GD server
 ## Notes and limits
 
 - The object database covers objects up to ID 1911 (GD 2.1). Newer 2.2 objects show as numbered placeholders, but they are kept intact when you save.
-- Robot and spider icons use an approximate pose.
-- Some UI sprite names are best guesses. If a sprite isn't found in your install, a styled fallback is shown instead.
+- Robot and spider icons use the idle pose from GD's own animation files.
+- If a sprite isn't found in your install (e.g. an older GD version), a styled fallback is shown instead.
 
 ## License
 

@@ -4,6 +4,8 @@ import { errorPanel } from "./ui.js";
 const routes = {
   "": () => import("./pages/home.js"),
   search: () => import("./pages/search.js"),
+  creator: () => import("./pages/creator.js"),
+  tools: () => import("./pages/tools.js"),
   level: () => import("./pages/level.js"),
   profile: () => import("./pages/profile.js"),
   leaderboard: () => import("./pages/leaderboard.js"),

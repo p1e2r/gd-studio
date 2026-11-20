@@ -15,6 +15,3 @@ which this file does. Full MIT text: see LICENSE. ISC text: "Permission to use, 
 distribute this software for any purpose with or without fee is hereby granted, provided that the
 above copyright notice and this permission notice appear in all copies."
 
-The level editor's menu layout is modeled on the editor UI of **GD Place 2024**
-(https://github.com/PlaceGD/gd-place-2024, MIT License, Copyright (c) 2023 FlowVix). No code, images
-or data files from that project are included; the icons are original.

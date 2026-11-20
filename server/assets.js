@@ -59,6 +59,7 @@ function logical(rel) {
 
 function walk(dir, rel = "", out = []) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (e.name === "__MACOSX" || e.name.startsWith("._") || e.name === ".DS_Store") continue;
     const r = rel ? `${rel}/${e.name}` : e.name;
     if (e.isDirectory()) {
       if (rel.split("/").length < 3) walk(path.join(dir, e.name), r, out);

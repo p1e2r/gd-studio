@@ -314,6 +314,23 @@ export async function drawIcon(ctx, { form = "cube", id = 1, col1 = 0, col2 = 3,
     drawLayer(ctx, atlas, `${pre}_extra_001.png`, dim === 1 ? null : d([255, 255, 255]), opts);
   };
   if (form === "robot" || form === "spider") {
+    const container = atlas.anim?.animationContainer;
+    const idleKey = container && Object.keys(container).find((k) => /idle_001/i.test(k));
+    if (idleKey) {
+      // GD's own idle pose from Robot_AnimDesc / Spider_AnimDesc
+      const nums = (str) => String(str || "").replace(/[{}\s]/g, "").split(",").map(Number);
+      const parts = Object.values(container[idleKey]).map((p) => {
+        const m = String(p.texture || "").match(/_(\d\d)_001\.png$/);
+        const [px, py] = nums(p.position);
+        const [sx, sy] = nums(p.scale);
+        const [fx, fy] = nums(p.flipped);
+        return { part: m ? m[1] : "01", x: px || 0, y: py || 0, sx: (sx || 1) * (fx ? -1 : 1), sy: (sy || 1) * (fy ? -1 : 1), rot: +p.rotation || 0, z: +p.zValue || 0 };
+      }).sort((a, b) => a.z - b.z);
+      const headZ = parts.find((p) => p.part === "01")?.z ?? 99;
+      for (const q of parts) part(`${base}_${q.part}`, { x: q.x, y: q.y, rot: q.rot, sx: q.sx, sy: q.sy, unit });
+      for (const q of parts) layers(`${base}_${q.part}`, { x: q.x, y: q.y, rot: q.rot, sx: q.sx, sy: q.sy, unit }, q.z < headZ ? 0.6 : 1);
+      return true;
+    }
     const pose = POSES[form];
     for (const q of pose) part(`${base}_0${q.p}`, { x: q.x, y: q.y, rot: q.r || 0, sx: q.fx ? -1 : 1, unit });
     for (const q of pose) layers(`${base}_0${q.p}`, { x: q.x, y: q.y, rot: q.r || 0, sx: q.fx ? -1 : 1, unit }, q.back ? 0.6 : 1);

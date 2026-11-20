@@ -1,48 +1,40 @@
+// GD MenuLayer: logo, Garage / Play / Creator, bottom row of round buttons
 import { h, state, go, api, toast } from "../core.js";
-import { sprite, text } from "../gd.js";
-import { panel, btn } from "../ui.js";
+import { sprite, text, iconCanvas } from "../gd.js";
+import { spriteBtn } from "../ui.js";
 import { refreshStatus } from "../app.js";
-
-const TILES = [
-  ["Search", "/search", "gj_findBtn_001.png"],
-  ["Featured", "/search?type=6", "GJ_featuredCoin_001.png"],
-  ["Trending", "/search?type=3", "GJ_likesIcon_001.png"],
-  ["Recent", "/search?type=4", "GJ_timeIcon_001.png"],
-  ["Most Liked", "/search?type=2", "GJ_likesIcon_001.png"],
-  ["Most Downloaded", "/search?type=1", "GJ_downloadsIcon_001.png"],
-  ["Hall of Fame", "/search?type=16", "GJ_epicCoin_001.png"],
-  ["Daily", "/level/daily", "GJ_dailyBtn_001.png"],
-  ["Weekly", "/level/weekly", "GJ_weeklyBtn_001.png"],
-  ["Gauntlets", "/gauntlets", "island_fire_001.png"],
-  ["Map Packs", "/mappacks", "GJ_mapPacksBtn_001.png"],
-  ["Leaderboards", "/leaderboard", "GJ_levelLeaderboardBtn_001.png"],
-  ["Icon Kit", "/iconkit", "GJ_garageBtn_001.png"],
-  ["Level Editor", "/editor", "GJ_createBtn_001.png"],
-  ["Save Explorer", "/save", "GJ_downloadBtn_001.png"],
-  ["Comment Gen", "/comment", "GJ_chatBtn_001.png"],
-  ["Textbox Gen", "/textbox", "GJ_infoIcon_001.png"],
-  ["Font Gen", "/font", "GJ_infoBtn_001.png"],
-];
+import { loadKit } from "./iconkit.js";
 
 export default async function home(app) {
   const me = state.status?.me;
-  const quick = h("form", { class: "row", style: { width: "100%" }, onsubmit: (e) => { e.preventDefault(); const v = e.target.q.value.trim(); if (v) go(`/search?str=${encodeURIComponent(v)}`); } },
-    h("input", { class: "gd-input grow", name: "q", placeholder: "Search levels or enter a level ID" }),
-    btn("Search", null, { small: true }));
-  const userForm = h("form", { class: "row", style: { width: "100%" }, onsubmit: (e) => { e.preventDefault(); const v = e.target.u.value.trim(); if (v) go(`/profile/${encodeURIComponent(v)}`); } },
-    h("input", { class: "gd-input grow", name: "u", placeholder: "Look up a player" }),
-    btn("Profile", null, { small: true, color: "cyan" }));
+  const kit = loadKit();
+  const big = (frame, label, to, height) => {
+    const b = spriteBtn(frame, label, () => go(to), { height });
+    b.classList.add("menu-big");
+    return b;
+  };
+  const small = (frame, label, to) => {
+    const b = spriteBtn(frame, label, () => go(to), { height: 64 });
+    return h("div", { class: "menu-small" }, b, text(label, { font: "bigFont", size: 12 }));
+  };
+  const profile = h("div", { class: "menu-profile" },
+    spriteBtn("GJ_profileButton_001.png", "Profile", () => go(me ? `/profile/${encodeURIComponent(me.username)}` : "/login"), { height: 70 }),
+    text(me ? me.username : "Log in", { font: "goldFont", size: 18 }),
+    me ? h("button", { class: "linkish", onclick: async () => { await api("/logout", { method: "POST" }); await refreshStatus(); toast("Logged out"); go(`/?t=${Date.now()}`); } }, text("Log out", { font: "bigFont", size: 11 })) : null);
 
-  const account = me
-    ? h("div", { class: "row center" }, text(`Logged in as ${me.username}`, { font: "goldFont", size: 22 }),
-      btn("My Profile", () => go(`/profile/${encodeURIComponent(me.username)}`), { small: true, color: "cyan" }),
-      btn("Log out", async () => { await api("/logout", { method: "POST" }); await refreshStatus(); toast("Logged out"); home(app.replaceChildren() || app); }, { small: true, color: "grey" }))
-    : h("div", { class: "row center" }, btn("Log in", () => go("/login"), { small: true }), h("span", { class: "small muted" }, "to comment, upload levels and see your stats"));
-
+  app.classList.add("menu-layer");
   app.append(
-    h("div", { class: "center", style: { marginTop: "18px" } }, text("GD Studio", { font: "goldFont", size: 64, align: "center" })),
-    panel("", h("div", { class: "col" }, quick, userForm, account)),
-    h("div", { class: "menu-grid" }, TILES.map(([label, to, icon]) =>
-      h("a", { class: "menu-tile", href: `#${to}` }, sprite(icon), text(label, { font: "bigFont", size: 19, align: "center", wrap: 120 })))),
-    h("p", { class: "small muted center" }, h("a", { href: "#/setup" }, "Setup")));
+    h("div", { class: "menu-logo" }, sprite("GJ_logo_001.png", { class: "logo" }), text("Studio", { font: "goldFont", size: 34 })),
+    h("div", { class: "menu-main" },
+      big("GJ_garageBtn_001.png", "Icon Kit", "/iconkit", 130),
+      big("GJ_playBtn_001.png", "Online Levels", "/search", 190),
+      big("GJ_creatorBtn_001.png", "Creator", "/creator", 130)),
+    h("div", { class: "menu-icon" }, iconCanvas({ form: "cube", id: kit.icons.cube, col1: kit.col1, col2: kit.col2, col3: kit.col3, glow: kit.glow }, 46)),
+    h("div", { class: "menu-bottom" },
+      small("GJ_statsBtn_001.png", "Scores", "/leaderboard"),
+      small("GJ_achBtn_001.png", "Save Explorer", "/save"),
+      small("GJ_moreGamesBtn_001.png", "Tools", "/tools"),
+      small("GJ_optionsBtn_001.png", "Setup", "/setup")),
+    profile);
+  return { destroy: () => app.classList.remove("menu-layer") };
 }

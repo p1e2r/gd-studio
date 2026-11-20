@@ -1,4 +1,4 @@
-// Shared GD-style widgets
+// Shared widgets that mirror Geometry Dash's own UI components (sprites come from the user's GD install)
 import { h, go, fmt } from "./core.js";
 import { sprite, text } from "./gd.js";
 
@@ -10,28 +10,37 @@ export function title(str, size = 40, font = "goldFont") {
   return h("div", { class: "title-row" }, text(str, { font, size, align: "center" }));
 }
 
+// GJ_button_01 ButtonSprite with bigFont label
 export function btn(label, onClick, { color = "", small = false, font = "bigFont", size, disabled } = {}) {
   return h("button", { class: `gd-btn ${color} ${small ? "sm" : ""}`, onclick: onClick, disabled },
     typeof label === "string" ? text(label, { font, size: size || (small ? 18 : 22) }) : label);
 }
 
-// Sprite button with text fallback if the frame isn't in the user's assets.
-export function spriteBtn(frame, label, onClick, { height } = {}) {
+// A sprite used as a button (GD's CCMenuItemSpriteExtra), with a text fallback if the frame is missing.
+export function spriteBtn(frame, label, onClick, { height, cls = "" } = {}) {
   const img = sprite(frame, { style: height ? { height: `${height}px` } : undefined });
-  return h("button", { class: "icon-btn", title: label, onclick: onClick }, img,
+  return h("button", { class: `icon-btn ${cls}`, title: label, "aria-label": label, onclick: onClick }, img,
     h("span", { class: "fallback gd-btn sm" }, text(label, { font: "bigFont", size: 16 })));
 }
 
 export function backButton(to = "/") {
-  const b = spriteBtn("GJ_arrow_01_001.png", "Back", () => (to === -1 ? history.back() : go(to)));
+  const b = spriteBtn("GJ_arrow_01_001.png", "Back", () => (to === -1 ? history.back() : go(to)), { height: 54 });
   b.classList.add("back-btn");
   return b;
 }
 
-export function spinner() { return h("div", { class: "spinner" }); }
+export function closeButton(onClick) {
+  const b = spriteBtn("GJ_closeBtn_001.png", "Close", onClick, { height: 44 });
+  b.classList.add("close-btn");
+  return b;
+}
 
-export function stat(icon, value, title) {
-  return h("span", { class: "stat", title }, sprite(icon), text(String(value), { font: "bigFont", size: 16 }));
+export function spinner() {
+  return h("div", { class: "gd-loading" }, h("div", { class: "spinner" }));
+}
+
+export function stat(icon, value, titleStr, size = 16) {
+  return h("span", { class: "stat", title: titleStr }, sprite(icon, { style: { height: `${size + 4}px` } }), text(String(value), { font: "bigFont", size }));
 }
 
 export function difficultyFace(level, size = 66) {
@@ -43,47 +52,52 @@ export function difficultyFace(level, size = 66) {
   f.addEventListener("error", () => wrap.replaceChildren(h("div", { class: "fallback-face" }, level.difficulty)), { once: true });
   wrap.append(f);
   return h("div", { class: "diff" }, wrap,
-    level.stars ? h("span", { class: "stat" }, text(String(level.stars), { font: "bigFont", size: 15 }), sprite(level.platformer ? "GJ_moonsSmall_001.png" : "star_small01_001.png", { style: { height: "16px" } })) : null,
-    level.coins ? h("span", { class: "stat" }, ...Array.from({ length: level.coins }, () => sprite(level.verifiedCoins ? "usercoin_small01_001.png" : "usercoin_small02_001.png", { style: { height: "16px" } }))) : null);
-}
-
-export function songLabel(level) {
-  if (level.song?.name) return `${level.song.name} by ${level.song.artist || "?"}`;
-  if (level.customSong) return `Song ${level.customSong}`;
-  return OFFICIAL_SONGS[level.officialSong ?? level.song?.official ?? 0] || "Official song";
+    level.stars ? h("span", { class: "stat" }, text(String(level.stars), { font: "bigFont", size: Math.round(size / 4.2) }), sprite(level.platformer ? "GJ_moonsIcon_001.png" : "star_small01_001.png", { style: { height: `${Math.round(size / 4)}px` } })) : null,
+    level.coins ? h("span", { class: "stat coins" }, ...Array.from({ length: level.coins }, () => sprite(level.verifiedCoins ? "usercoin_small01_001.png" : "usercoin_small02_001.png", { style: { height: `${Math.round(size / 4.4)}px` } }))) : null);
 }
 
 export const OFFICIAL_SONGS = ["Stereo Madness", "Back On Track", "Polargeist", "Dry Out", "Base After Base", "Cant Let Go", "Jumper", "Time Machine", "Cycles", "xStep", "Clutterfunk", "Theory of Everything", "Electroman Adventures", "Clubstep", "Electrodynamix", "Hexagon Force", "Blast Processing", "Theory of Everything 2", "Geometrical Dominator", "Deadlocked", "Fingerdash", "Dash"];
 
+export function songLabel(level) {
+  if (level.song?.name) return level.song.name;
+  if (level.customSong) return `Song ${level.customSong}`;
+  return OFFICIAL_SONGS[level.officialSong ?? level.song?.official ?? 0] || "Official song";
+}
+
+// GD LevelCell
 export function levelCell(level) {
   return h("div", { class: "gd-cell" },
-    difficultyFace(level),
+    difficultyFace(level, 62),
     h("div", { class: "info" },
-      text(level.name, { font: "bigFont", size: 26 }),
-      level.author ? h("a", { href: `#/profile/${encodeURIComponent(level.author)}`, onclick: (e) => e.stopPropagation() }, text(`By ${level.author}`, { font: "goldFont", size: 19 })) : null,
-      h("div", { class: "small", style: { color: "#ff9cf6" } }, songLabel(level)),
+      text(level.name, { font: "bigFont", size: 24 }),
+      level.author ? h("a", { href: `#/profile/${encodeURIComponent(level.author)}` }, text(`By ${level.author}`, { font: "goldFont", size: 18 })) : text("By -", { font: "goldFont", size: 18 }),
+      text(songLabel(level), { font: "bigFont", size: 13, color: "#fa6eff" }),
       h("div", { class: "stats" },
-        stat("GJ_timeIcon_001.png", level.length, "Length"),
-        stat("GJ_downloadsIcon_001.png", fmt(level.downloads), "Downloads"),
-        stat(level.likes < 0 ? "GJ_dislikesIcon_001.png" : "GJ_likesIcon_001.png", fmt(level.likes), "Likes"),
-        level.objects ? h("span", { class: "small muted" }, `${fmt(level.objects)} objects`) : null)),
+        stat("GJ_timeIcon_001.png", level.length, "Length", 13),
+        stat("GJ_downloadsIcon_001.png", fmt(level.downloads), "Downloads", 13),
+        stat(level.likes < 0 ? "GJ_dislikesIcon_001.png" : "GJ_likesIcon_001.png", fmt(level.likes), "Likes", 13))),
     btn("View", () => go(`/level/${level.id}`), { small: true }));
 }
 
-export function table(rows) {
-  return h("div", { class: "gd-table" },
-    sprite("GJ_table_top_001.png", { class: "cap" }),
-    h("div", { class: "body" }, rows),
-    sprite("GJ_table_bottom_001.png", { class: "cap" }));
+// GJListLayer: GJ_table_top / side / bottom frame around a brown scrolling list
+export function table(rows, { title: titleStr = "", height } = {}) {
+  const body = h("div", { class: "gd-list-body", style: height ? { maxHeight: height } : undefined }, rows);
+  return h("div", { class: "gd-list" },
+    h("div", { class: "gd-list-top" }, sprite("GJ_table_top_001.png", { class: "cap" }), titleStr ? h("div", { class: "gd-list-title" }, text(titleStr, { font: "bigFont", size: 24 })) : null),
+    h("div", { class: "gd-list-mid" }, h("div", { class: "gd-list-side l" }), body, h("div", { class: "gd-list-side r" })),
+    sprite("GJ_table_bottom_001.png", { class: "cap bottom" }));
 }
 
-export function pager(page, totalPages, onPage) {
-  const left = spriteBtn("GJ_arrow_03_001.png", "Prev", () => onPage(page - 1));
-  const right = spriteBtn("GJ_arrow_03_001.png", "Next", () => onPage(page + 1));
-  left.classList.add("arrow"); right.classList.add("arrow", "right");
+// Big page arrows at the screen edges (LevelBrowserLayer) + "1 to 10 of N" counter
+export function pager(page, totalPages, onPage, { total, pageSize = 10 } = {}) {
+  const left = spriteBtn("GJ_arrow_03_001.png", "Prev", () => onPage(page - 1), { height: 70 });
+  const right = spriteBtn("GJ_arrow_03_001.png", "Next", () => onPage(page + 1), { height: 70 });
+  left.classList.add("page-arrow", "left"); right.classList.add("page-arrow", "right");
   if (page <= 0) left.style.visibility = "hidden";
   if (totalPages && page >= totalPages - 1) right.style.visibility = "hidden";
-  return h("div", { class: "pager" }, left, text(`Page ${page + 1}${totalPages ? ` / ${totalPages}` : ""}`, { font: "goldFont", size: 22 }), right);
+  const from = page * pageSize + 1;
+  const counter = total ? text(`${from} to ${Math.min(total, from + pageSize - 1)} of ${total}`, { font: "goldFont", size: 16 }) : text(`Page ${page + 1}`, { font: "goldFont", size: 16 });
+  return h("div", { class: "pager" }, left, right, h("div", { class: "page-counter" }, counter));
 }
 
 export function modal(content, { onClose } = {}) {
@@ -94,6 +108,24 @@ export function modal(content, { onClose } = {}) {
   return close;
 }
 
+// FLAlertLayer-style popup: GJ_square01, goldFont title, OK button
+export function alert(titleStr, body, { okText = "OK", onOk } = {}) {
+  let close;
+  const p = panel("", h("div", { class: "center" }, text(titleStr, { font: "goldFont", size: 30, align: "center" })),
+    typeof body === "string" ? h("div", { class: "chat center", style: { margin: "10px 0" } }, body) : body,
+    h("div", { class: "row center" }, btn(okText, () => { close(); onOk?.(); }, { small: true })));
+  p.classList.add("alert");
+  close = modal(p);
+  return close;
+}
+
+// GD chatFont paragraph (wraps at wrap px)
+export function chat(str, { wrap = 560, color, align = "left", size = 17 } = {}) {
+  return h("div", { class: "chat" }, text(str, { font: "chatFont", size, wrap, color, align }), h("span", { class: "sr" }, str));
+}
+
+export function darkBox(...children) { return h("div", { class: "gd-box" }, ...children); }
+
 export function errorPanel(err) {
-  return panel("", title("Something went wrong", 30, "bigFont"), h("p", { class: "center" }, err.message || String(err)));
+  return panel("", title("Something went wrong", 30, "bigFont"), h("p", { class: "center chat" }, err.message || String(err)));
 }

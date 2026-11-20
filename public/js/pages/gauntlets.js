@@ -1,21 +1,23 @@
+// GD GauntletSelectLayer: islands you scroll through
 import { h, api, go } from "../core.js";
 import { sprite, text } from "../gd.js";
 import { backButton, spinner, errorPanel } from "../ui.js";
 
 let names = null;
 export default async function gauntlets(app) {
-  app.append(backButton("/"), h("div", { class: "center" }, text("The Lost Gauntlets", { font: "goldFont", size: 44 })));
-  const grid = h("div", { class: "menu-grid" }, spinner());
-  app.append(grid);
+  const strip = h("div", { class: "gauntlet-strip" }, spinner());
+  app.append(backButton("/creator"), h("div", { class: "center", style: { marginTop: "16px" } }, text("The Lost Gauntlets", { font: "goldFont", size: 40 })), strip);
   try {
     names ||= await fetch("/data/gauntlets.json").then((r) => r.json());
     const list = await api("/gauntlets");
-    grid.replaceChildren(...list.map((g) => {
+    strip.replaceChildren(...list.map((g) => {
       const name = names[g.id] || `Gauntlet ${g.id}`;
-      return h("a", { class: "menu-tile", href: `#/search?type=0&gauntlet=${g.id}`, onclick: () => go(`/search?gauntlet=${g.id}`) },
-        sprite(`island_${name.toLowerCase().replace(/\s+/g, "")}_001.png`),
-        text(name, { font: "bigFont", size: 20, align: "center" }),
-        text("Gauntlet", { font: "goldFont", size: 16 }));
+      const key = name.toLowerCase().replace(/\s+/g, "");
+      const img = sprite(`island_${key}_001.png`, { class: "island" });
+      img.addEventListener("error", () => { img.src = `/sprite/island_new${String(((g.id - 1) % 35) + 1).padStart(2, "0")}_001.png`; img.classList.remove("missing"); }, { once: true });
+      return h("button", { class: "gauntlet-card", onclick: () => go(`/search?gauntlet=${g.id}`) },
+        text(name, { font: "bigFont", size: 26, align: "center" }), text("Gauntlet", { font: "goldFont", size: 18 }), img,
+        text(`${g.levels.length} levels`, { font: "bigFont", size: 13 }));
     }));
-  } catch (e) { grid.replaceWith(errorPanel(e)); }
+  } catch (e) { strip.replaceWith(errorPanel(e)); }
 }

@@ -117,6 +117,7 @@ api.post("/setup/upload", wrap(async (req, res) => {
     for (const e of zip.getEntries()) {
       if (e.isDirectory) continue;
       const parts = e.entryName.replace(/\\/g, "/").split("/");
+      if (parts.includes("__MACOSX") || parts.some((x) => x.startsWith("._"))) continue;
       const i = parts.findIndex((p) => p.toLowerCase() === "resources");
       const rel = (i >= 0 ? parts.slice(i + 1) : parts).join("/");
       if (!rel || rel.includes("..") || !/\.(png|plist|fnt|mp3|ogg)$/i.test(rel)) continue;
